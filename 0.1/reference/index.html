@@ -567,30 +567,32 @@ canonical sources rather than duplicating signatures that could drift out of dat
 is run through both the <code>ruby</code> binary and this library and the results are compared,
 gated on the reference where relevant and skipping itself where <code>ruby</code> is absent so
 the cross-arch lanes still validate the library.</p>
-<p><strong>190 of 198 shared-corpus cases (95.96%) render byte-for-byte identically to the
+<p><strong>197 of 198 shared-corpus cases (99.49%) render byte-for-byte identically to the
 Ruby <code>kramdown</code> 2.5.2 gem.</strong> A shrink-only ratchet locks this in: a case outside the
 known-failing ledger that stops matching fails CI, and a ledgered case that starts
 matching must be graduated out.</p>
 <h3 id="not-yet-supported">Not yet supported<a class="headerlink" href="#not-yet-supported" title="Permanent link">&para;</a></h3>
-<p><code>go-ruby-kramdown</code> is <strong>not</strong> spec-complete. The eight remaining corpus cases are:</p>
+<p><code>go-ruby-kramdown</code> is <strong>not</strong> spec-complete, but the single remaining corpus case
+is a test-harness artifact rather than a library feature:</p>
 <ul>
-<li><strong>LaTeX math</strong> (4 cases) — block and span math beyond single-line MathJax
-  <code>\[…\]</code> / <code>\(…\)</code> wrapping needs a real math engine (itex2mml / KaTeX) or the
-  <code>:math_engine ~</code> fallback, which this pure-Go, no-Ruby port does not embed.</li>
-<li><strong>Rouge syntax-highlighted code blocks</strong> (2 cases) — the common Rouge paths are
-  wired through the pure-Go highlighter; <code>rouge/simple</code> still needs a PHP lexer and
-  <code>rouge/multiple</code> selects a bespoke formatter defined inside kramdown's own Ruby
-  test harness, which no pure-Go wiring can supply.</li>
-<li><strong>2 advanced IAL / attribute-list cases</strong> — a trailing block IAL that kramdown
-  attaches to a preceding table, and deferred nested ALD-reference resolution with
-  kramdown's <code>update_attr_with_ial</code> accumulation ordering.</li>
+<li><strong><code>rouge/multiple</code></strong> — this case sets <code>formatter: RougeHTMLFormatters</code> in its
+  options, naming a custom Rouge formatter subclass defined <em>only inside kramdown's
+  own Ruby test harness</em> (kramdown 2.5.2 <code>test/test_files.rb</code>), whose <code>#stream</code>
+  wraps every block in an extra <code>&lt;div class="custom-class"&gt;</code>. It is not a kramdown
+  library feature — the options file references an arbitrary Ruby class the gem's
+  test process happens to have loaded — so no pure-Go wiring can resolve or run it.
+  The three code blocks it contains (two Ruby, one PHP) already tokenise
+  byte-for-byte; only the harness-injected wrapper div is unreachable.</li>
 </ul>
 <h3 id="already-ported">Already ported<a class="headerlink" href="#already-ported" title="Permanent link">&para;</a></h3>
-<p>A large body of kramdown behaviour is covered, including a full port of kramdown's
-<code>Parser::Html</code> raw-HTML front-end and <code>html_to_native</code> conversion, table-of-contents
-generation, the HTML named-entity table, footnotes with back-links and ordering,
-smart quotes and typographic substitutions, header options with auto-ids and
-transliterated IDs, and CJK line-break handling.</p>
+<p>Essentially all of kramdown's rendered behaviour is covered, including a full port
+of kramdown's <code>Parser::Html</code> raw-HTML front-end and <code>html_to_native</code> conversion,
+table-of-contents generation, the complete 905-entry HTML named-entity table,
+footnotes with back-links and ordering, smart quotes and typographic substitutions,
+header options with auto-ids and transliterated IDs, CJK line-break handling, LaTeX
+<strong>math</strong> (<code>$$…$$</code> block/span, MathJax-wrapped by default), Inline Attribute Lists /
+Attribute List Definitions (IAL/ALD), and <strong>Rouge</strong> syntax highlighting via the
+pure-Go go-ruby-rouge lexers — including the PHP lexer that closed <code>rouge/simple</code>.</p>
 
 
 
