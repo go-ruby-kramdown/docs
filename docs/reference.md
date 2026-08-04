@@ -34,30 +34,32 @@ is run through both the `ruby` binary and this library and the results are compa
 gated on the reference where relevant and skipping itself where `ruby` is absent so
 the cross-arch lanes still validate the library.
 
-**190 of 198 shared-corpus cases (95.96%) render byte-for-byte identically to the
+**197 of 198 shared-corpus cases (99.49%) render byte-for-byte identically to the
 Ruby `kramdown` 2.5.2 gem.** A shrink-only ratchet locks this in: a case outside the
 known-failing ledger that stops matching fails CI, and a ledgered case that starts
 matching must be graduated out.
 
 ### Not yet supported
 
-`go-ruby-kramdown` is **not** spec-complete. The eight remaining corpus cases are:
+`go-ruby-kramdown` is **not** spec-complete, but the single remaining corpus case
+is a test-harness artifact rather than a library feature:
 
-- **LaTeX math** (4 cases) — block and span math beyond single-line MathJax
-  `\[…\]` / `\(…\)` wrapping needs a real math engine (itex2mml / KaTeX) or the
-  `:math_engine ~` fallback, which this pure-Go, no-Ruby port does not embed.
-- **Rouge syntax-highlighted code blocks** (2 cases) — the common Rouge paths are
-  wired through the pure-Go highlighter; `rouge/simple` still needs a PHP lexer and
-  `rouge/multiple` selects a bespoke formatter defined inside kramdown's own Ruby
-  test harness, which no pure-Go wiring can supply.
-- **2 advanced IAL / attribute-list cases** — a trailing block IAL that kramdown
-  attaches to a preceding table, and deferred nested ALD-reference resolution with
-  kramdown's `update_attr_with_ial` accumulation ordering.
+- **`rouge/multiple`** — this case sets `formatter: RougeHTMLFormatters` in its
+  options, naming a custom Rouge formatter subclass defined *only inside kramdown's
+  own Ruby test harness* (kramdown 2.5.2 `test/test_files.rb`), whose `#stream`
+  wraps every block in an extra `<div class="custom-class">`. It is not a kramdown
+  library feature — the options file references an arbitrary Ruby class the gem's
+  test process happens to have loaded — so no pure-Go wiring can resolve or run it.
+  The three code blocks it contains (two Ruby, one PHP) already tokenise
+  byte-for-byte; only the harness-injected wrapper div is unreachable.
 
 ### Already ported
 
-A large body of kramdown behaviour is covered, including a full port of kramdown's
-`Parser::Html` raw-HTML front-end and `html_to_native` conversion, table-of-contents
-generation, the HTML named-entity table, footnotes with back-links and ordering,
-smart quotes and typographic substitutions, header options with auto-ids and
-transliterated IDs, and CJK line-break handling.
+Essentially all of kramdown's rendered behaviour is covered, including a full port
+of kramdown's `Parser::Html` raw-HTML front-end and `html_to_native` conversion,
+table-of-contents generation, the complete 905-entry HTML named-entity table,
+footnotes with back-links and ordering, smart quotes and typographic substitutions,
+header options with auto-ids and transliterated IDs, CJK line-break handling, LaTeX
+**math** (`$$…$$` block/span, MathJax-wrapped by default), Inline Attribute Lists /
+Attribute List Definitions (IAL/ALD), and **Rouge** syntax highlighting via the
+pure-Go go-ruby-rouge lexers — including the PHP lexer that closed `rouge/simple`.
