@@ -388,6 +388,30 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Conformance">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#not-yet-supported" class="md-nav__link">
+    <span class="md-ellipsis">
+      Not yet supported
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#already-ported" class="md-nav__link">
+    <span class="md-ellipsis">
+      Already ported
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -478,6 +502,30 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Conformance">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#not-yet-supported" class="md-nav__link">
+    <span class="md-ellipsis">
+      Not yet supported
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#already-ported" class="md-nav__link">
+    <span class="md-ellipsis">
+      Already ported
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -519,6 +567,30 @@ canonical sources rather than duplicating signatures that could drift out of dat
 is run through both the <code>ruby</code> binary and this library and the results are compared,
 gated on the reference where relevant and skipping itself where <code>ruby</code> is absent so
 the cross-arch lanes still validate the library.</p>
+<p><strong>190 of 198 shared-corpus cases (95.96%) render byte-for-byte identically to the
+Ruby <code>kramdown</code> 2.5.2 gem.</strong> A shrink-only ratchet locks this in: a case outside the
+known-failing ledger that stops matching fails CI, and a ledgered case that starts
+matching must be graduated out.</p>
+<h3 id="not-yet-supported">Not yet supported<a class="headerlink" href="#not-yet-supported" title="Permanent link">&para;</a></h3>
+<p><code>go-ruby-kramdown</code> is <strong>not</strong> spec-complete. The eight remaining corpus cases are:</p>
+<ul>
+<li><strong>LaTeX math</strong> (4 cases) — block and span math beyond single-line MathJax
+  <code>\[…\]</code> / <code>\(…\)</code> wrapping needs a real math engine (itex2mml / KaTeX) or the
+  <code>:math_engine ~</code> fallback, which this pure-Go, no-Ruby port does not embed.</li>
+<li><strong>Rouge syntax-highlighted code blocks</strong> (2 cases) — the common Rouge paths are
+  wired through the pure-Go highlighter; <code>rouge/simple</code> still needs a PHP lexer and
+  <code>rouge/multiple</code> selects a bespoke formatter defined inside kramdown's own Ruby
+  test harness, which no pure-Go wiring can supply.</li>
+<li><strong>2 advanced IAL / attribute-list cases</strong> — a trailing block IAL that kramdown
+  attaches to a preceding table, and deferred nested ALD-reference resolution with
+  kramdown's <code>update_attr_with_ial</code> accumulation ordering.</li>
+</ul>
+<h3 id="already-ported">Already ported<a class="headerlink" href="#already-ported" title="Permanent link">&para;</a></h3>
+<p>A large body of kramdown behaviour is covered, including a full port of kramdown's
+<code>Parser::Html</code> raw-HTML front-end and <code>html_to_native</code> conversion, table-of-contents
+generation, the HTML named-entity table, footnotes with back-links and ordering,
+smart quotes and typographic substitutions, header options with auto-ids and
+transliterated IDs, and CJK line-break handling.</p>
 
 
 
